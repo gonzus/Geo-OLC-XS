@@ -10,3 +10,6 @@ Makefile.PL
 ppport.h
 README.md
 typemap
+t/00_basic.t
+t/01_encode_decode.t
+t/02_shorten_recover.t
