@@ -19,6 +19,10 @@ __END__
 
 =head1 NAME
 
+Geo::OLC::XS - Perl XS binding for Open Location Code, a library to generate
+short codes that can be used like street addresses, for places where street
+addresses don't exist.
+
 =head1 VERSION
 
 Version 0.000001
