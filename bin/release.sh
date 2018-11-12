@@ -1,5 +1,8 @@
 #!/bin/sh
 
+class_name=Geo::OLC::XS
+
+dir_name=$(echo $class_name | sed -e 's/::/-/g')
 errors="/tmp/release_$$_errors"
 rm -f $errors
 
@@ -17,10 +20,10 @@ cat /tmp/release_$$_make | egrep '^Not in MANIFEST:' | awk -F: '{print $2}' | se
 echo
 echo "== Building distribution =="
 rm -f /tmp/release_$$_make
-rm -f Parser-GraphQL-XS-*.tar
-rm -f Parser-GraphQL-XS-*.tar.gz
+rm -f ${dir_name}-*.tar
+rm -f ${dir_name}-*.tar.gz
 make dist 2>&1 | tee -a /tmp/release_$$_make
-name=$(cat /tmp/release_$$_make | egrep "^Created Parser-GraphQL-XS.*.gz" | awk '{print $2}' | sed 's/\.tar\.gz$//g')
+name=$(cat /tmp/release_$$_make | egrep "^Created ${dir_name}.*.gz" | awk '{print $2}' | sed 's/\.tar\.gz$//g')
 
 echo
 echo "== Extracting distribution $name =="
@@ -51,7 +54,7 @@ cat Changes | head -n 1 | awk '{print $1}' >>$errors
 
 echo "== Checking missing modules required by library ==" >>$errors
 mkfifo /tmp/release_$$_a
-git grep -E '^[ \t]*use' | egrep '\.(pm|pl):' | egrep -v '^(bin)/' | sed 's/::/@@/g' | awk -F: '{print $2}' | sed 's/qw.*//g' | sed 's/#.*//g' | tr -d ';' | sed 's/ *$//g' | sed 's/@@/::/g' | egrep -v "use (strict|warnings|utf8|parent|Parser::GraphQL::XS)" | sed 's/^use //g' | sort -u >/tmp/release_$$_a &
+git grep -E '^[ \t]*use' | egrep '\.(pm|pl):' | egrep -v '^(bin)/' | sed 's/::/@@/g' | awk -F: '{print $2}' | sed 's/qw.*//g' | sed 's/#.*//g' | tr -d ';' | sed 's/ *$//g' | sed 's/@@/::/g' | egrep -v "use (strict|warnings|utf8|parent|$class_name)" | sed 's/^use //g' | sort -u >/tmp/release_$$_a &
 mkfifo /tmp/release_$$_b
 cat Makefile.PL | awk '{if ($0 ~ /},/) {p=0; next;} if (p) { print; } if ($0 ~ /PREREQ_PM/) {p=1; next;}}' | awk -F\' '{print $2}' | egrep -v 'ExtUtils::XSpp' | sort -u >/tmp/release_$$_b &
 diff /tmp/release_$$_a /tmp/release_$$_b >>$errors
@@ -59,7 +62,7 @@ rm -f /tmp/release_$$_a /tmp/release_$$_b
 
 echo "== Checking missing modules required by tests ==" >>$errors
 mkfifo /tmp/release_$$_a
-git grep use t | sed 's/::/@@/g' | awk -F: '{print $2}' | sed 's/qw.*//g' | sed 's/#.*//g' | tr -d ';' | sed 's/ *$//g' | sed 's/@@/::/g' | egrep -v "use (strict|warnings|utf8|parent|Parser::GraphQL::XS)|^[ \t]*use_ok" | sed 's/^use //g' | sort -u >/tmp/release_$$_a &
+git grep use t | sed 's/::/@@/g' | awk -F: '{print $2}' | sed 's/qw.*//g' | sed 's/#.*//g' | tr -d ';' | sed 's/ *$//g' | sed 's/@@/::/g' | egrep -v "use (strict|warnings|utf8|parent|$class_name)|^[ \t]*use_ok" | sed 's/^use //g' | sort -u >/tmp/release_$$_a &
 mkfifo /tmp/release_$$_b
 cat Makefile.PL | awk '{if ($0 ~ /},/) {p=0; next;} if (p) { print; } if ($0 ~ /TEST_REQUIRES/) {p=1; next;}}' | awk -F\' '{print $2}' | sort -u >/tmp/release_$$_b &
 diff /tmp/release_$$_a /tmp/release_$$_b >>$errors
